@@ -1,202 +1,326 @@
-<!-- Header -->
-<header class="bg-gradient-to-r from-orange-600 to-orange-500 text-white">
+<!-- ====== CSS mínimo (ruido + tipografías) ====== -->
+<style>
+    .noise::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        opacity: .08;
+        mix-blend-mode: overlay;
+        background-image:
+            radial-gradient(1px 1px at 20% 30%, #fff 0, transparent 1px),
+            radial-gradient(1px 1px at 60% 70%, #fff 0, transparent 1px),
+            radial-gradient(1px 1px at 80% 20%, #fff 0, transparent 1px),
+            radial-gradient(1px 1px at 30% 80%, #fff 0, transparent 1px);
+        background-size: 3px 3px, 4px 4px, 5px 5px, 6px 6px;
+    }
+
+    .title-heavy {
+        font-family: "Black Ops One", system-ui, sans-serif;
+        letter-spacing: .5px;
+    }
+
+    .ui-font {
+        font-family: "Oxanium", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+    }
+
+    /* Glow suave para el CTA cuando sí puede enviar */
+    @keyframes glowPulse {
+
+        0%,
+        100% {
+            box-shadow: 0 0 0 rgba(34, 197, 94, 0.0);
+        }
+
+        50% {
+            box-shadow: 0 0 24px rgba(34, 197, 94, 0.35);
+        }
+    }
+
+    .animate-glow {
+        animation: glowPulse 1.8s ease-in-out infinite;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .animate-glow {
+            animation: none !important;
+            box-shadow: none !important;
+        }
+    }
+</style>
+<!-- Fondo global tenue (detrás de todo) -->
+<div class="fixed inset-0 -z-10 pointer-events-none">
+    <div class="absolute inset-0 bg-center bg-cover opacity-5 md:opacity-10 mix-blend-overlay filter brightness-75 contrast-125 saturate-110"
+        [style.backgroundImage]="'url(assets/fondo.webp)'">
+    </div>
+    <div class="absolute inset-0 bg-gradient-to-b from-black via-black/60 to-black"></div>
+</div>
+
+
+
+<!-- HEADER Sabbath -->
+<header
+    class="relative noise bg-gradient-to-r from-black via-zinc-950 to-black text-white border-b border-purple-700/40">
     <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
         <div class="flex items-center gap-3">
-            <span class="text-2xl">🍗</span>
-            <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight">Alitas La SanJua</h1>
+            <span class="text-2xl" aria-hidden="true">🦇</span>
+            <h1 class="title-heavy text-2xl sm:text-3xl text-purple-400 drop-shadow-[0_0_10px_rgba(168,85,247,.35)]">
+                PURPLE WINGS
+            </h1>
+            <span
+                class="ml-2 inline-flex items-center gap-1 px-2 py-1 text-[10px] rounded bg-black/60 border transition-colors"
+                [ngClass]="(total || 0) >= 300
+              ? 'border-purple-400 text-purple-200 shadow-[0_0_15px_rgba(168,85,247,.45)]'
+              : 'border-purple-500/40 text-zinc-200'">
+                ☠️ <span>Rock & Fire</span>
+            </span>
         </div>
-        <span class="text-[11px] sm:text-xs bg-white/15 px-3 py-1 rounded-full border border-white/20 shadow-sm">
+        <span class="text-[11px] sm:text-xs bg-purple-700/20 px-3 py-1 rounded-full border border-purple-500/30">
             🔥 Al carbón • Celaya
         </span>
     </div>
 </header>
 
-<!-- Hero / Producto -->
-<section class="bg-gradient-to-b from-orange-50 to-white">
+<!-- HERO con logo + “menú de concierto” -->
+<section class="relative bg-black text-zinc-100 ui-font">
+    <!-- Capa BG SOLO para el HERO -->
+    <div class="absolute inset-0 -z-10 pointer-events-none">
+        <div class="absolute inset-0 bg-[url('assets/fondo.webp')] bg-cover bg-center
+             opacity-5 md:opacity-10 mix-blend-overlay filter brightness-75 contrast-125 saturate-110">
+        </div>
+        <div class="absolute inset-0 bg-gradient-to-b from-black/90 via-transparent to-black/80"></div>
+    </div>
+
+    <div class="max-w-6xl mx-auto px-6 pt-8 pb-6">
+        <!-- Lema -->
+        <div class="mb-6 bg-black/60 border border-zinc-800 rounded-xl p-4">
+            <p class="text-center text-zinc-300 tracking-widest text-sm">ESTE ES EL PRINCIPIO DEL FIN… DEL HAMBRE</p>
+        </div>
+
+        <!-- Bloques tipo menú -->
+        <nav class="space-y-3">
+            <a href="#pedido" class="group flex items-center justify-between px-4 py-4 rounded-xl
+                               bg-black/60 border border-zinc-800 hover:border-purple-500/60 transition">
+                <span class="text-lg tracking-wide">PEDIDO</span>
+                <span class="text-purple-400 text-2xl transition-transform group-hover:translate-x-1">›</span>
+            </a>
+
+            <a href="https://wa.me/524614210058" target="_blank" class="group flex items-center justify-between px-4 py-4 rounded-xl
+                  bg-black/60 border border-zinc-800 hover:border-purple-500/60 transition">
+                <span class="text-lg tracking-wide">WHATSAPP</span>
+                <span class="text-purple-400 text-2xl transition-transform group-hover:translate-x-1">›</span>
+            </a>
+
+            <!-- Opcionales / futura expansión -->
+            <!-- <div class="grid sm:grid-cols-2 gap-3">
+                <div class="flex items-center justify-between px-4 py-4 rounded-xl bg-black/40 border border-zinc-800">
+                    <span class="text-lg tracking-wide text-zinc-400">GALERÍA</span>
+                    <span class="text-purple-800 text-2xl">›</span>
+                </div>
+                <div class="flex items-center justify-between px-4 py-4 rounded-xl bg-black/40 border border-zinc-800">
+                    <span class="text-lg tracking-wide text-zinc-400">PROMOS</span>
+                    <span class="text-purple-800 text-2xl">›</span>
+                </div>
+            </div> -->
+        </nav>
+    </div>
+</section>
+
+<!-- PRODUCTO + FORM PEDIDO (oscuro, un solo CTA) -->
+<section class="bg-gradient-to-b from-black via-zinc-950 to-black text-zinc-100">
     <div class="max-w-6xl mx-auto px-6 py-10 grid lg:grid-cols-2 gap-8 items-start">
-        <!-- Columna izquierda: Producto y controles -->
+        <!-- Producto -->
         <div class="space-y-5">
-            <div class="relative overflow-hidden rounded-2xl border bg-white/90 backdrop-blur-sm">
+            <div class="relative overflow-hidden rounded-2xl border border-purple-700/40 bg-zinc-900/80 backdrop-blur">
                 <div class="p-5 sm:p-6">
                     <div class="flex items-start justify-between">
                         <div class="flex items-center gap-3">
                             <div class="text-4xl" aria-hidden="true">{{ paquete.emoji }}</div>
                             <div>
-                                <h2 class="text-2xl font-extrabold text-gray-900">{{ paquete.name }}</h2>
-                                <p class="text-sm text-gray-600">{{ paquete.desc }}</p>
+                                <h2 class="text-2xl font-extrabold text-white">{{ paquete.name }}</h2>
+                                <p class="text-sm text-zinc-400">{{ paquete.desc }}</p>
+                                <span
+                                    class="mt-2 inline-flex items-center gap-1 px-2 py-1 text-[10px] rounded-md border transition-colors"
+                                    [ngClass]="(total || 0) >= 300
+    ? 'bg-purple-900/50 border-purple-400 text-purple-200 shadow-[0_0_12px_rgba(168,85,247,.35)]'
+    : 'bg-purple-800/30 border-fuchsia-500/30 text-zinc-200'">
+                                    ☠️ Edición Carbón
+                                </span>
+
                             </div>
                         </div>
                         <div class="text-right min-w-[7.5rem]">
-                            <div class="text-3xl font-extrabold text-orange-600">
+                            <div class="text-3xl font-extrabold text-purple-300">
                                 {{ paquete.price | currency:'MXN':'symbol-narrow' }}
                             </div>
-                            <p class="text-[11px] text-gray-500">por paquete</p>
+                            <p class="text-[11px] text-zinc-500">por paquete</p>
                         </div>
                     </div>
 
                     <div class="mt-4 flex flex-wrap items-center gap-2 text-sm">
                         <span
-                            class="inline-flex items-center px-3 py-1 rounded-full bg-orange-100 text-orange-700 border border-orange-200">
-                            🔥 Al carbón
-                        </span>
-                        <span class="text-gray-600">18–20 alitas por paquete</span>
-                        <span class="text-gray-600">• {{ paquete.includes }}</span>
+                            class="inline-flex items-center px-3 py-1 rounded-full bg-purple-800/40 text-purple-200 border border-purple-600/60">🔥
+                            Al carbón</span>
+                        <span class="text-zinc-400">18–20 alitas por paquete</span>
+                        <span class="text-zinc-400">• {{ paquete.includes }}</span>
                     </div>
 
                     <!-- Stepper -->
                     <div class="mt-6 flex items-center justify-between gap-4">
                         <div class="flex items-center gap-2">
-                            <button (click)="dec()" aria-label="Disminuir paquetes" class="w-12 h-12 rounded-full border border-gray-300 flex items-center justify-center text-2xl
-                         hover:bg-gray-50 active:scale-95 transition disabled:opacity-40"
+                            <button (click)="dec()" (keyup.enter)="dec()" aria-label="Disminuir paquetes" class="w-12 h-12 rounded-full border border-zinc-700 flex items-center justify-center text-2xl text-white
+                         hover:bg-zinc-800 active:scale-95 transition disabled:opacity-40"
                                 [disabled]="paquete.qty===0">−</button>
-
-                            <div class="w-14 text-center text-2xl font-extrabold tabular-nums">{{ paquete.qty }}</div>
-
-                            <button (click)="inc()" aria-label="Aumentar paquetes" class="w-12 h-12 rounded-full border border-gray-300 flex items-center justify-center text-2xl
-                         hover:bg-gray-50 active:scale-95 transition">+</button>
+                            <div class="w-14 text-center text-2xl font-extrabold tabular-nums text-white">{{ paquete.qty
+                                }}</div>
+                            <button (click)="inc()" (keyup.enter)="inc()" aria-label="Aumentar paquetes" class="w-12 h-12 rounded-full border border-zinc-700 flex items-center justify-center text-2xl text-white
+                         hover:bg-zinc-800 active:scale-95 transition">+</button>
                         </div>
 
                         <div class="text-right">
-                            <div class="text-sm text-gray-500">Aprox. piezas</div>
-                            <div class="font-semibold" *ngIf="paquete.qty>0; else noPiezas">
-                                {{ piezasMin }}–{{ piezasMax }}
-                            </div>
-                            <ng-template #noPiezas><span class="text-gray-400">0</span></ng-template>
+                            <div class="text-sm text-zinc-500">Aprox. piezas</div>
+                            <div class="font-semibold text-zinc-200" *ngIf="paquete.qty>0; else noPiezas">{{ piezasMin
+                                }}–{{ piezasMax }}</div>
+                            <ng-template #noPiezas><span class="text-zinc-600">0</span></ng-template>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Datos de entrega -->
-            <div id="pedido" class="rounded-2xl border bg-white p-5 sm:p-6">
-                <h3 class="font-bold text-gray-900 mb-4">Datos de entrega</h3>
+            <!-- DATOS DE ENTREGA -->
+            <div id="pedido" class="rounded-2xl border border-purple-700/40 bg-zinc-900/80 p-5 sm:p-6">
+                <h3 class="font-bold text-white mb-4">Datos de entrega</h3>
 
                 <div class="grid sm:grid-cols-2 gap-4">
                     <div class="sm:col-span-2">
-                        <label class="block text-sm text-gray-700 mb-1">Tu nombre (opcional)</label>
+                        <label class="block text-sm text-zinc-300 mb-1">Tu nombre (obligatorio)</label>
                         <input [(ngModel)]="nombreCliente" [ngModelOptions]="{standalone:true}"
-                            class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
+                            class="w-full p-3 bg-zinc-950 text-zinc-100 placeholder-zinc-500 border border-zinc-700 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
                             placeholder="Ej. Adrián" />
                     </div>
 
                     <div class="sm:col-span-2 flex flex-wrap items-center gap-4">
-                        <span class="block text-sm text-gray-700 mb-0">Entrega</span>
-                        <label class="inline-flex items-center gap-2 text-sm cursor-pointer">
+                        <!-- <span class="block text-sm text-zinc-300 mb-0">Entrega</span> -->
+                        <!-- <label class="inline-flex items-center gap-2 text-sm cursor-pointer text-zinc-200">
                             <input type="radio" [(ngModel)]="metodoEntrega" [ngModelOptions]="{standalone:true}"
                                 value="pickup" />
                             <span>Recoger en tienda</span>
-                        </label>
-                        <label class="inline-flex items-center gap-2 text-sm cursor-pointer">
+                        </label> -->
+                        <!-- <label class="inline-flex items-center gap-2 text-sm cursor-pointer text-zinc-200">
                             <input type="radio" [(ngModel)]="metodoEntrega" [ngModelOptions]="{standalone:true}"
                                 value="delivery" />
                             <span>Domicilio</span>
-                        </label>
+                        </label> -->
                     </div>
 
                     <div *ngIf="metodoEntrega==='delivery'" class="sm:col-span-2 grid sm:grid-cols-2 gap-4">
                         <div class="sm:col-span-2">
-                            <label class="block text-sm text-gray-700 mb-1">Dirección</label>
+                            <label class="block text-sm text-zinc-300 mb-1">Dirección</label>
                             <input [(ngModel)]="direccion" [ngModelOptions]="{standalone:true}"
-                                class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
+                                class="w-full p-3 bg-zinc-950 text-zinc-100 placeholder-zinc-500 border border-zinc-700 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
                                 placeholder="Calle, número, colonia" />
                         </div>
 
                         <div>
-                            <span class="block text-sm text-gray-700">Costo de envío</span>
-                            <div class="mt-1 px-3 py-2 rounded-xl border bg-gray-50 font-semibold">
+                            <span class="block text-sm text-zinc-300">Costo de envío</span>
+                            <div
+                                class="mt-1 px-3 py-2 rounded-xl border border-zinc-700 bg-zinc-950 font-semibold text-zinc-100">
                                 <ng-container *ngIf="envioGratis; else feeNormal">GRATIS</ng-container>
                                 <ng-template #feeNormal>{{ deliveryFee | currency:'MXN':'symbol-narrow' }}</ng-template>
                             </div>
-                            <div *ngIf="freeShippingThreshold>0" class="text-xs text-gray-500 mt-1">
+                            <div *ngIf="freeShippingThreshold>0" class="text-xs text-zinc-500 mt-1">
                                 Envío gratis desde {{ freeShippingThreshold | currency:'MXN':'symbol-narrow' }}.
                             </div>
                         </div>
                     </div>
 
                     <div class="sm:col-span-2">
-                        <label class="block text-sm text-gray-700 mb-1">Nota (opcional)</label>
+                        <label class="block text-sm text-zinc-300 mb-1">Nota (opcional)</label>
                         <textarea [(ngModel)]="nota" [ngModelOptions]="{standalone:true}"
-                            class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none min-h-24"
-                            rows="2" placeholder="Ej. bien doraditas / extra salsa"></textarea>
+                            class="w-full p-3 bg-zinc-950 text-zinc-100 placeholder-zinc-500 border border-zinc-700 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none min-h-24"
+                            rows="2" placeholder="Ej. bien doraditas 🔥"></textarea>
                     </div>
                 </div>
 
                 <!-- Progreso a envío gratis -->
                 <div *ngIf="freeShippingThreshold>0" class="mt-5">
-                    <div class="flex justify-between text-xs text-gray-600 mb-1">
+                    <div class="flex justify-between text-xs text-zinc-400 mb-1">
                         <span>Progreso a envío gratis</span>
                         <span *ngIf="!envioGratis; else listo">Te faltan {{ faltaParaGratis |
                             currency:'MXN':'symbol-narrow' }}</span>
                         <ng-template #listo><span>¡Listo! Envío gratis 💸</span></ng-template>
                     </div>
-                    <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-                        <div class="h-2 bg-orange-500 transition-all duration-300" [style.width.%]="envioProgressPct">
+                    <div class="w-full h-2 bg-zinc-800 rounded-full overflow-hidden">
+                        <div class="h-2 bg-purple-500 transition-all duration-300" [style.width.%]="envioProgressPct">
                         </div>
                     </div>
                 </div>
 
-                <!-- CTA -->
-                <button (click)="abrirWhatsApp()" [disabled]="!puedeEnviar" class="mt-6 w-full inline-flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700
-                   text-white font-semibold px-5 py-3 rounded-2xl transition"
-                    [ngClass]="{'opacity-50 cursor-not-allowed': !puedeEnviar}">
-                    🟢 Enviar pedido por WhatsApp
-                </button>
-                <p class="mt-2 text-xs text-gray-500">* Selecciona al menos un paquete.</p>
+                <!-- ÚNICO CTA -->
+                <a [href]="(!nombreCliente || paquete.qty === 0) ? null : whatsAppUrl()" target="_blank" class="mt-6 w-full inline-flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700
+                        text-white font-semibold px-5 py-3 rounded-2xl transition disabled:opacity-50"
+                    [ngClass]="(!nombreCliente || paquete.qty === 0) ? 'cursor-not-allowed pointer-events-none opacity-50' : 'animate-glow ring-1 ring-purple-400/40'"
+                    title="{{ (!nombreCliente || paquete.qty === 0) ? 'Agrega tu nombre y paquetes' : 'Listo para enviar por WhatsApp' }}">
+                    📩 Enviar pedido por WhatsApp
+                </a>
+
+                <p *ngIf="(total || 0) >= 300" class="mt-2 text-[11px] text-purple-300">
+                    ☠️ gracias por tu hambre legendaria.
+                </p>
+
+
+                <!-- <p class="mt-2 text-[11px] text-zinc-500">* Selecciona al menos un paquete.</p> -->
+
+                <!-- Programar hora (opcional) -->
+                <!-- <div class="mt-4 flex items-center gap-3">
+                    <label class="text-xs text-zinc-400">Programar hora:</label>
+                    <input type="time" [(ngModel)]="horaProgramada" [ngModelOptions]="{standalone:true}"
+                        class="p-2 bg-zinc-950 text-zinc-100 border border-zinc-700 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none">
+                    <span class="text-xs text-zinc-500">Déjalo vacío para “lo antes posible”.</span>
+                </div> -->
             </div>
         </div>
 
-        <!-- Columna derecha: Resumen (sticky en desktop) -->
-        <aside class="lg:sticky lg:top-6 space-y-5">
-            <div class="rounded-2xl border bg-white p-5 sm:p-6">
-                <h4 class="font-bold text-gray-900 mb-3">Resumen</h4>
+        <!-- Resumen -->
+        <aside class="space-y-5">
+            <div class="rounded-2xl border border-purple-700/40 bg-zinc-900/80 p-5 sm:p-6">
+                <h4 class="font-bold text-white mb-3">Resumen</h4>
 
                 <ng-container *ngIf="paquete.qty > 0; else sinSel">
-                    <ul class="space-y-1 text-sm">
-                        <li class="flex justify-between">
-                            <span>{{ paquete.qty }} × {{ paquete.name }}</span>
-                            <span>{{ subtotal | currency:'MXN':'symbol-narrow' }}</span>
-                        </li>
+                    <ul class="space-y-1 text-sm text-zinc-200">
+                        <li class="flex justify-between"><span>{{ paquete.qty }} × {{ paquete.name }}</span><span>{{
+                                subtotal | currency:'MXN':'symbol-narrow' }}</span></li>
                     </ul>
 
-                    <div class="text-xs text-gray-500 mt-1">Incluye: {{ paquete.includes }}</div>
-                    <div class="text-xs text-gray-500">Aprox: {{ piezasMin }}–{{ piezasMax }} piezas</div>
+                    <div class="text-xs text-zinc-400 mt-1">Incluye: {{ paquete.includes }}</div>
+                    <div class="text-xs text-zinc-400">Aprox: {{ piezasMin }}–{{ piezasMax }} piezas</div>
 
-                    <hr class="my-3">
+                    <hr class="my-3 border-zinc-800">
 
-                    <div class="flex justify-between text-sm">
-                        <span>Subtotal</span>
-                        <span>{{ subtotal | currency:'MXN':'symbol-narrow' }}</span>
+                    <div class="flex justify-between text-sm text-zinc-300">
+                        <span>Subtotal</span><span>{{ subtotal | currency:'MXN':'symbol-narrow' }}</span>
                     </div>
 
-                    <div class="flex justify-between text-sm" *ngIf="metodoEntrega==='delivery'">
+                    <div class="flex justify-between text-sm text-zinc-300" *ngIf="metodoEntrega==='delivery'">
                         <span>Envío</span>
-                        <span>
-                            <ng-container *ngIf="envioGratis; else fee2">GRATIS</ng-container>
-                            <ng-template #fee2>{{ deliveryFee | currency:'MXN':'symbol-narrow' }}</ng-template>
-                        </span>
+                        <span><ng-container *ngIf="envioGratis; else fee2">GRATIS</ng-container>
+                            <ng-template #fee2>{{ deliveryFee | currency:'MXN':'symbol-narrow' }}</ng-template></span>
                     </div>
 
-                    <div class="flex justify-between text-lg font-extrabold mt-2">
-                        <span>Total</span>
-                        <span>{{ total | currency:'MXN':'symbol-narrow' }}</span>
+                    <div class="flex justify-between text-lg font-extrabold mt-2 text-white">
+                        <span>Total</span><span>{{ total | currency:'MXN':'symbol-narrow' }}</span>
                     </div>
-
-                    <a [href]="whatsAppUrl()" target="_blank" class="mt-4 w-full inline-flex justify-center items-center gap-2 bg-green-600 hover:bg-green-700
-                     text-white font-semibold px-5 py-3 rounded-2xl transition">
-                        Abrir WhatsApp
-                    </a>
                 </ng-container>
 
                 <ng-template #sinSel>
-                    <p class="text-sm text-gray-500">Selecciona cuántos paquetes quieres para ver el total.</p>
+                    <p class="text-sm text-zinc-500">Selecciona cuántos paquetes quieres para ver el total.</p>
                 </ng-template>
             </div>
 
-            <!-- Tarjeta de confianza -->
-            <div class="rounded-2xl border bg-white p-5">
-                <ul class="text-sm text-gray-700 space-y-2">
+            <div class="rounded-2xl border border-purple-700/40 bg-zinc-900/80 p-5">
+                <ul class="text-sm text-zinc-300 space-y-2">
+                    <!-- <li>☠️ Sabor heavy, servicio soft</li> -->
                     <li>⏱️ Listo en ~15–20 min</li>
-                    <li>📍 Recoge en Celaya o envío cercano</li>
                     <li>💬 Confirmación por WhatsApp</li>
                 </ul>
             </div>
@@ -204,36 +328,29 @@
     </div>
 </section>
 
-<!-- Footer -->
-<footer class="bg-orange-100 text-gray-800 mt-12 border-t border-orange-200">
+<!-- FOOTER -->
+<footer class="bg-zinc-950 text-zinc-300  border-t border-purple-700/40 ui-font">
     <div class="max-w-6xl mx-auto px-6 py-8 grid md:grid-cols-3 gap-8">
         <div>
-            <h2 class="text-lg font-semibold text-orange-700">Alitas La SanJua</h2>
-            <p class="mt-2 text-sm">Alitas adobadas al carbón con zanahoria y pepino. ¡Haz tu pedido en un clic!</p>
+            <h2 class="text-lg font-semibold text-purple-300">Purple Wing</h2>
+            <p class="mt-2 text-sm text-zinc-400">Alitas adobadas al carbón. Pedido por WhatsApp, sin dramas.</p>
         </div>
         <div>
-            <h2 class="text-lg font-semibold text-orange-700">Enlaces rápidos</h2>
+            <h2 class="text-lg font-semibold text-purple-300">Enlaces rápidos</h2>
             <ul class="mt-2 space-y-2 text-sm">
-                <li><a href="#pedido" class="hover:text-orange-600">Hacer Pedido</a></li>
-                <li><a href="tel:4614210058" class="hover:text-orange-600">Llamar</a></li>
-                <li><a href="mailto:pedidos&#64;alitaslasanjua.com" class="hover:text-orange-600">Correo</a></li>
+                <li><a href="#pedido" class="hover:text-purple-300">Hacer Pedido</a></li>
+                <li><a href="tel:4614210058" class="hover:text-purple-300">Llamar</a></li>
+                <li><a href="mailto:pedidos&#64;PurpleWing.com" class="hover:text-purple-300">Correo</a></li>
             </ul>
         </div>
         <div>
-            <h2 class="text-lg font-semibold text-orange-700">Contacto</h2>
+            <h2 class="text-lg font-semibold text-purple-300">Contacto</h2>
             <p class="mt-2 text-sm">📍 Celaya, Guanajuato</p>
-            <p class="text-sm">📞 <a href="tel:4614210058" class="hover:text-orange-600">461 421 0058</a></p>
-            <p class="text-sm">📩 <a href="mailto:pedidos&#64;alitaslasanjua.com"
-                    class="hover:text-orange-600">pedidos&#64;alitaslasanjua.com</a></p>
+            <p class="text-sm">📞 <a href="tel:4614210058" class="hover:text-purple-300">461 421 0058</a></p>
+            <p class="text-sm">📩 <a href="mailto:pedidos&#64;PurpleWing.com"
+                    class="hover:text-purple-300">pedidos&#64;PurpleWing.com</a></p>
         </div>
     </div>
-    <div class="bg-orange-200 text-center py-4 text-xs text-gray-700">
-        © 2025 Alitas La SanJua. Todos los derechos reservados.
+    <div class="bg-black text-center py-4 text-xs text-zinc-500">© 2025 Purple Wing. Todos los derechos reservados.
     </div>
 </footer>
-
-<!-- Botón flotante en móvil -->
-<a *ngIf="puedeEnviar" [href]="whatsAppUrl()" target="_blank" class="fixed bottom-4 left-1/2 -translate-x-1/2 md:hidden bg-green-600 hover:bg-green-700 text-white font-semibold
-            px-6 py-3 rounded-full transition shadow-xl">
-    Pedir por WhatsApp
-</a>
