@@ -22,3 +22,22 @@ input[type="radio"]:focus-visible {
 @media (min-width: 1024px) {
   aside > div:first-child { position: sticky; top: 0.5rem; }
 }
+
+.bg-nitido {
+  /* NO uses /src/... en Angular */
+  /* La imagen ya la pones inline con [style.backgroundImage] */
+  background-size: cover;
+  background-position: center;
+  opacity: .28;
+  mix-blend-mode: normal;
+  filter: brightness(.85) contrast(1.05) saturate(1.2);
+}
+
+.bg-overlay {
+  background: linear-gradient(
+    to bottom,
+    rgba(0,0,0,.85) 0%,
+    rgba(0,0,0,.6) 50%,
+    rgba(0,0,0,.9) 100%
+  );
+}
