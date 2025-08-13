@@ -1,0 +1,26 @@
+<div class="max-w-md mx-auto mt-10 p-6 bg-white shadow-lg rounded-xl">
+    <h1 class="text-2xl font-bold text-center text-orange-600 mb-6">Pedido de Alitas</h1>
+
+    <label class="block mb-2 text-sm font-medium text-gray-700">Tu nombre</label>
+    <input type="text" [(ngModel)]="pedido.nombre"
+        class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 mb-4"
+        placeholder="Ej. Adrián">
+
+    <label class="block mb-2 text-sm font-medium text-gray-700">Cantidad</label>
+    <input type="number" [(ngModel)]="pedido.cantidad" min="1"
+        class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 mb-4">
+
+    <label class="block mb-2 text-sm font-medium text-gray-700">Sabor</label>
+    <select [(ngModel)]="pedido.sabor"
+        class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 mb-6">
+        <option>BBQ</option>
+        <option>Buffalo</option>
+        <option>Lemon Pepper</option>
+        <option>Mango Habanero</option>
+    </select>
+
+    <button (click)="hacerPedido()"
+        class="w-full bg-orange-600 hover:bg-orange-700 text-white py-2 px-4 rounded-lg transition">
+        Realizar Pedido
+    </button>
+</div>

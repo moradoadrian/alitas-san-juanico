@@ -1,0 +1,178 @@
+<header class="bg-orange-600 text-white shadow">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+        <h1 class="text-2xl font-bold">🍗 Alitas La SanJua </h1>
+        <nav class="flex gap-6">
+
+        </nav>
+    </div>
+</header>
+
+<section class="bg-gradient-to-b from-orange-100 to-white">
+    <div class="max-w-6xl mx-auto px-6 py-12 grid md:grid-cols-2 gap-10 items-start">
+        <!-- Izquierda: datos del cliente -->
+        <div>
+            <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 leading-tight">
+                Alitas <span class="text-orange-600">bien crujientes</span>, pedido en un clic
+            </h1>
+            <p class="mt-4 text-gray-600">Elige sabores, ve el total y manda tu pedido por WhatsApp. Sin rodeos.</p>
+
+            <div class="mt-6 space-y-3">
+                <div>
+                    <label class="text-sm text-gray-700">Tu nombre (opcional)</label>
+                    <input [(ngModel)]="nombreCliente" [ngModelOptions]="{standalone:true}"
+                        class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-orange-500"
+                        placeholder="Ej. Adrián">
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-3 sm:items-center">
+                    <span class="text-sm text-gray-700">Entrega</span>
+                    <label class="inline-flex items-center gap-2">
+                        <input type="radio" [(ngModel)]="metodoEntrega" [ngModelOptions]="{standalone:true}"
+                            value="pickup">
+                        <span>Recoger en tienda</span>
+                    </label>
+                    <label class="inline-flex items-center gap-2">
+                        <input type="radio" [(ngModel)]="metodoEntrega" [ngModelOptions]="{standalone:true}"
+                            value="delivery">
+                        <span>Domicilio</span>
+                    </label>
+                </div>
+
+                <!-- Solo domicilio -->
+                <div *ngIf="metodoEntrega==='delivery'" class="grid sm:grid-cols-2 gap-3">
+                    <div class="sm:col-span-2">
+                        <label class="text-sm text-gray-700">Dirección</label>
+                        <input [(ngModel)]="direccion" [ngModelOptions]="{standalone:true}"
+                            class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-orange-500"
+                            placeholder="Calle, número, colonia">
+                    </div>
+
+                    <div class="flex flex-col justify-end">
+                        <span class="text-sm text-gray-700">Costo de envío</span>
+                        <div class="mt-1 px-3 py-2 rounded-xl border bg-gray-50 font-semibold">
+                            <span
+                                *ngIf="freeShippingThreshold>0 && subtotal>=freeShippingThreshold; else feeNormal">GRATIS</span>
+                            <ng-template #feeNormal>{{ deliveryFee | currency:'MXN':'symbol-narrow' }}</ng-template>
+                        </div>
+                        <div *ngIf="freeShippingThreshold>0" class="text-xs text-gray-500 mt-1">
+                            Envío gratis desde {{ freeShippingThreshold | currency:'MXN':'symbol-narrow' }}.
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-sm text-gray-700">Nota (opcional)</label>
+                    <textarea [(ngModel)]="nota" [ngModelOptions]="{standalone:true}"
+                        class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-orange-500" rows="2"
+                        placeholder="Ej. sin apio / extra salsa"></textarea>
+                </div>
+            </div>
+
+            <button (click)="abrirWhatsApp()" [disabled]="!puedeEnviar" [class.opacity-50]="!puedeEnviar"
+                class=" mt-6 inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold px-5 py-3 rounded-2xl transition">
+                🟢 Enviar pedido por WhatsApp
+            </button>
+            <p class="mt-2 text-xs text-gray-500">* Selecciona al menos un sabor.</p>
+        </div>
+
+        <!-- Derecha: sabores + resumen -->
+        <div class="space-y-6">
+            <!-- Cards -->
+            <div class="grid grid-cols-2 gap-4">
+                <div *ngFor="let s of sabores" class="p-4 bg-white rounded-2xl border hover:shadow transition">
+                    <div class="flex items-start justify-between">
+                        <div class="text-3xl">{{ s.emoji }}</div>
+                        <span *ngIf="s.qty>0" class="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full">
+                            {{ s.qty }} orden(es)
+                        </span>
+                    </div>
+                    <h3 class="mt-2 font-semibold">{{ s.name }}</h3>
+                    <p class="text-sm text-gray-500">{{ s.desc }}</p>
+                    <div class="mt-2 font-bold text-orange-600">{{ s.price | currency:'MXN':'symbol-narrow' }}</div>
+                    <p class="text-xs text-gray-400">Precio por orden (10 alitas)</p>
+
+                    <div class="mt-3 flex items-center gap-2">
+                        <button (click)="dec(s)"
+                            class="w-9 h-9 rounded-full border flex items-center justify-center hover:bg-gray-50">−</button>
+                        <div class="min-w-8 text-center font-semibold">{{ s.qty }}</div>
+                        <button (click)="inc(s)"
+                            class="w-9 h-9 rounded-full border flex items-center justify-center hover:bg-gray-50">+</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resumen -->
+            <div class="p-5 bg-white rounded-2xl border">
+                <h4 class="font-bold text-gray-900 mb-3">Resumen</h4>
+                <ng-container *ngIf="seleccionados.length; else sinSel">
+                    <ul class="space-y-1">
+                        <li *ngFor="let s of seleccionados" class="flex justify-between text-sm">
+                            <span>{{ s.qty }} × {{ s.name }}</span>
+                            <span>{{ (s.qty * s.price) | currency:'MXN':'symbol-narrow' }}</span>
+                        </li>
+                    </ul>
+                    <hr class="my-3">
+                    <div class="flex justify-between text-sm">
+                        <span>Subtotal</span>
+                        <span>{{ subtotal | currency:'MXN':'symbol-narrow' }}</span>
+                    </div>
+                    <div class="flex justify-between text-sm" *ngIf="metodoEntrega==='delivery'">
+                        <span>Envío</span>
+                        <span>
+                            <span
+                                *ngIf="freeShippingThreshold>0 && subtotal>=freeShippingThreshold; else fee2">GRATIS</span>
+                            <ng-template #fee2>{{ deliveryFee | currency:'MXN':'symbol-narrow' }}</ng-template>
+                        </span>
+                    </div>
+                    <div class="flex justify-between text-lg font-extrabold mt-2">
+                        <span>Total</span>
+                        <span>{{ total | currency:'MXN':'symbol-narrow' }}</span>
+                    </div>
+
+                    <a [href]="whatsAppUrl()" target="_blank" [class.opacity-50]="!puedeEnviar"
+                        [class.pointer-events-none]="!puedeEnviar"
+                        class="mt-4 w-full inline-flex justify-center items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold px-5 py-3 rounded-2xl transition">
+                        Abrir WhatsApp
+                    </a>
+                </ng-container>
+                <ng-template #sinSel>
+                    <p class="text-sm text-gray-500">Selecciona al menos un sabor para ver el total.</p>
+                </ng-template>
+            </div>
+        </div>
+    </div>
+</section>
+<footer class="bg-orange-100 text-gray-800 mt-12 border-t border-orange-200">
+    <div class="max-w-6xl mx-auto px-6 py-8 grid md:grid-cols-3 gap-8">
+        <!-- Columna 1 -->
+        <div>
+            <h2 class="text-lg font-semibold text-orange-700">Alitas La SanJua</h2>
+            <p class="mt-2 text-sm">
+                Las mejores alitas de la ciudad, preparadas al carbón y servidas con amor.
+                ¡Haz tu pedido en un clic!
+            </p>
+        </div>
+
+        <!-- Columna 2 -->
+        <div>
+            <h2 class="text-lg font-semibold text-orange-700">Enlaces rápidos</h2>
+            <ul class="mt-2 space-y-2 text-sm">
+                <li><a href="#menu" class="hover:text-orange-600">Menú</a></li>
+                <li><a href="#pedido" class="hover:text-orange-600">Hacer Pedido</a></li>
+                <li><a href="#contacto" class="hover:text-orange-600">Contacto</a></li>
+            </ul>
+        </div>
+
+        <!-- Columna 3 -->
+        <div>
+            <h2 class="text-lg font-semibold text-orange-700">Contacto</h2>
+            <p class="mt-2 text-sm">📍 Celaya, Guanajuato</p>
+            <p class="text-sm">📞 461 123 4567</p>
+            <p class="text-sm">📩 pedidos&#64;alitaslasanjua.com</p>
+        </div>
+    </div>
+
+    <div class="bg-orange-200 text-center py-4 text-xs text-gray-700">
+        © 2025 Alitas La SanJua. Todos los derechos reservados.
+    </div>
+</footer>
