@@ -2,7 +2,14 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
-type Sabor = { name: string; price: number; emoji: string; desc: string; qty: number };
+type Paquete = {
+  name: string;
+  price: number;
+  emoji: string;
+  desc: string;
+  includes: string;
+  qty: number;
+};
 
 @Component({
   selector: 'app-home',
@@ -12,65 +19,69 @@ type Sabor = { name: string; price: number; emoji: string; desc: string; qty: nu
   styleUrls: ['./home.component.css']
 })
 export class HomeComponent {
-  // Tu WhatsApp en formato internacional SIN + ni espacios (México=52)
-  // Ejemplo: 524614210058
   whatsappNumber = '524614210058';
 
-  // Catálogo (precio por ORDEN de 10 alitas)
-  sabores: Sabor[] = [
-    { name: 'BBQ',            price: 139, emoji: '🍖', desc: 'Clásica, dulce y ahumada', qty: 0 },
-    { name: 'Buffalo',        price: 139, emoji: '🌶️', desc: 'Picante y adictiva',       qty: 0 },
-    { name: 'Lemon Pepper',   price: 139, emoji: '🍋', desc: 'Cítrica con pimienta',      qty: 0 },
-    { name: 'Mango Habanero', price: 149, emoji: '🥭', desc: 'Dulce… y luego te alcanza', qty: 0 }
-  ];
+  paquete: Paquete = {
+    name: 'Alitas adobadas',
+    price: 300,
+    emoji: '🍗',
+    desc: 'Al carbón, jugosas y con ese toque casero 🔥',
+    includes: 'Incluye zanahoria y pepino',
+    qty: 0
+  };
 
-  // Envío SIMPLE (sin CP): envío fijo o gratis desde cierto subtotal
-  deliveryFeeFlat = 25;     // costo fijo de envío
-  freeShippingThreshold = 399; // envío gratis desde este subtotal (0 = desactivar)
+  deliveryFeeFlat = 25;
+  freeShippingThreshold = 600;
 
-  // Datos del pedido
   nombreCliente = '';
   metodoEntrega: 'pickup' | 'delivery' = 'pickup';
   direccion = '';
   nota = '';
 
-  // Cálculos
-  get seleccionados() { return this.sabores.filter(s => s.qty > 0); }
-  get subtotal() { return this.seleccionados.reduce((acc, s) => acc + s.qty * s.price, 0); }
-
+  // Derivados
+  get subtotal() { return this.paquete.qty * this.paquete.price; }
+  get envioGratis() { return this.freeShippingThreshold > 0 && this.subtotal >= this.freeShippingThreshold; }
   get deliveryFee(): number {
     if (this.metodoEntrega !== 'delivery') return 0;
-    if (this.freeShippingThreshold > 0 && this.subtotal >= this.freeShippingThreshold) return 0;
-    return this.deliveryFeeFlat;
+    return this.envioGratis ? 0 : this.deliveryFeeFlat;
+  }
+  get total() { return this.subtotal + this.deliveryFee; }
+  get puedeEnviar() { return this.paquete.qty > 0; }
+  get piezasMin() { return this.paquete.qty * 18; }
+  get piezasMax() { return this.paquete.qty * 20; }
+  get envioProgressPct() {
+    if (this.freeShippingThreshold <= 0) return 0;
+    return Math.min(100, Math.round((this.subtotal / this.freeShippingThreshold) * 100));
+  }
+  get faltaParaGratis() {
+    if (this.freeShippingThreshold <= 0 || this.subtotal >= this.freeShippingThreshold) return 0;
+    return this.freeShippingThreshold - this.subtotal;
   }
 
-  get total() { return this.subtotal + this.deliveryFee; }
-  get puedeEnviar() { return this.seleccionados.length > 0; }
-
-  inc(s: Sabor) { s.qty++; }
-  dec(s: Sabor) { if (s.qty > 0) s.qty--; }
+  inc() { this.paquete.qty++; }
+  dec() { if (this.paquete.qty > 0) this.paquete.qty--; }
 
   private mxn(n: number) {
     return n.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
   }
 
   private buildMessage() {
-    const lines = this.seleccionados
-      .map(s => `- ${s.qty} × ${s.name} (${this.mxn(s.price)} c/u) = ${this.mxn(s.qty * s.price)}`)
-      .join('\n');
+    const linea = `- ${this.paquete.qty} × ${this.paquete.name} (${this.mxn(this.paquete.price)} c/u) = ${this.mxn(this.subtotal)}`;
 
     const entrega = this.metodoEntrega === 'pickup'
-      ? 'Recoger en tienda'
-      : `Entrega a domicilio
+      ? 'Entrega: Recoger en tienda'
+      : `Entrega: A domicilio
    Dirección: ${this.direccion || '(pendiente)'}
    Envío: ${this.deliveryFee === 0 ? 'GRATIS' : this.mxn(this.deliveryFee)}`;
 
     const nombre = this.nombreCliente ? `Cliente: ${this.nombreCliente}\n` : '';
     const nota = this.nota ? `\nNota: ${this.nota}` : '';
+    const piezas = this.paquete.qty > 0 ? `\nAproximado de piezas: ${this.piezasMin}–${this.piezasMax}` : '';
 
     return (
-`¡Hola! Quiero hacer un pedido de alitas:
-${lines}
+`¡Hola! Quiero hacer un pedido:
+${linea}
+Incluye: ${this.paquete.includes}${piezas}
 Subtotal: ${this.mxn(this.subtotal)}
 ${entrega}
 Total: ${this.mxn(this.total)}
