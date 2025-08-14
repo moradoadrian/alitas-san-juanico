@@ -227,11 +227,13 @@
                 </div>
 
                 <!-- CTA principal -->
-                <a href="" (click)="enviarYGuardar($event)" class="mt-6 w-full inline-flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700
+                <a href="" (click)="enviarYGuardar($event)" [class.pointer-events-none]="!canSend"
+                    [class.opacity-50]="!canSend" class="mt-6 w-full inline-flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700
                        text-white font-semibold px-5 py-3 rounded-2xl transition"
-                    [ngClass]="canSend ? 'animate-glow ring-1 ring-purple-400/40' : 'cursor-not-allowed pointer-events-none opacity-50'">
+                    [ngClass]="canSend ? 'animate-glow ring-1 ring-purple-400/40' : ''">
                     📩 Enviar pedido por WhatsApp
                 </a>
+
 
 
 
@@ -308,6 +310,71 @@
         </aside>
     </div>
 </section>
+
+<!-- MODAL: Ticket previo a WhatsApp -->
+<div *ngIf="mostrandoTicket && ticket" class="overlay" (click)="cerrarTicket()">
+    <div class="bg-zinc-900 border border-purple-700/50 rounded-2xl p-5 sm:p-6 w-[360px] text-zinc-100"
+        (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="ticketTitle">
+        <div class="flex items-start justify-between gap-3 mb-2">
+            <h3 id="ticketTitle" class="text-lg font-bold text-white">Ticket de pedido</h3>
+            <button class="px-3 py-1 rounded-lg border border-zinc-700 bg-zinc-950 hover:bg-zinc-900"
+                (click)="cerrarTicket()">✕</button>
+        </div>
+
+        <div class="text-xs mb-3 text-zinc-400">
+            <div><span class="font-semibold text-zinc-300">Folio:</span> {{ ticket.id }}</div>
+            <div><span class="font-semibold text-zinc-300">Fecha:</span> {{ ticket.fecha }}</div>
+            <div><span class="font-semibold text-zinc-300">Listo aprox.:</span> {{ ticket.listoA }}</div>
+        </div>
+
+        <div class="space-y-1 text-sm">
+            <div class="flex justify-between">
+                <span>{{ ticket.qty }} × {{ paquete.name }}</span>
+                <span>{{ ticket.subtotal | currency:'MXN':'symbol-narrow' }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span>Envío</span>
+                <span>{{ ticket.envio === 0 ? 'GRATIS' : (ticket.envio | currency:'MXN':'symbol-narrow') }}</span>
+            </div>
+            <hr class="border-zinc-800 my-2">
+            <div class="flex justify-between text-base font-extrabold text-white">
+                <span>Total</span>
+                <span>{{ ticket.total | currency:'MXN':'symbol-narrow' }}</span>
+            </div>
+        </div>
+
+        <div class="mt-3 text-xs text-zinc-400 space-y-1">
+            <div><span class="font-semibold text-zinc-300">Cliente:</span> {{ ticket.nombre || '—' }}</div>
+            <div><span class="font-semibold text-zinc-300">Método:</span> {{ ticket.metodo === 'pickup' ? 'Recoger en
+                tienda' : 'Domicilio' }}</div>
+            <div *ngIf="ticket.direccion"><span class="font-semibold text-zinc-300">Dirección:</span> {{
+                ticket.direccion }}</div>
+            <div *ngIf="ticket.nota"><span class="font-semibold text-zinc-300">Nota:</span> {{ ticket.nota }}</div>
+        </div>
+
+        <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <button
+                class="col-span-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold px-4 py-2 rounded-xl disabled:opacity-60 disabled:pointer-events-none"
+                (click)="confirmarYEnviarWhatsApp()" [disabled]="isSaving">
+                <ng-container *ngIf="!isSaving; else loading">
+                    Confirmar y abrir WhatsApp
+                </ng-container>
+                <ng-template #loading>Guardando…</ng-template>
+            </button>
+
+            <button class="border border-zinc-700 bg-zinc-950 text-zinc-200 hover:bg-zinc-900 rounded-xl px-3 py-2"
+                (click)="imprimirTicket()">
+                Imprimir
+            </button>
+        </div>
+
+        <div class="mt-2 text-[11px] text-zinc-500">
+            Si WhatsApp no abre, usa el enlace: <a [href]="whatsappHttpLink" target="_blank"
+                class="underline">alternativo</a>.
+        </div>
+    </div>
+</div>
+
 
 <!-- FOOTER -->
 <footer class="bg-zinc-950 text-zinc-300 border-t border-purple-700/40 ui-font">

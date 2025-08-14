@@ -1,14 +1,49 @@
+// src/app/service/pedido.service.ts
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import {
+  Firestore, collection, addDoc, serverTimestamp,
+  CollectionReference, DocumentData
+} from '@angular/fire/firestore';
+import { from, Observable } from 'rxjs';
+
+export type PedidoDoc = {
+  id: string;
+  fecha: string;
+  listoA?: string;
+
+  total: number;
+  subtotal: number;
+  envio: number;
+  qty: number;
+
+  nombre?: string;
+  metodo: 'pickup' | 'delivery';
+  direccion?: string;
+
+  // 👇 en español, como en tu componente
+  nota?: string;
+
+  // metadatos
+  createdAt?: any;
+  status?: 'nuevo' | 'confirmado' | 'preparando' | 'listo' | 'entregado' | 'cancelado';
+  origin?: 'web';
+};
 
 @Injectable({ providedIn: 'root' })
 export class PedidoService {
-  private http = inject(HttpClient);
+  private readonly firestore = inject(Firestore);
 
-  // 👇 PON AQUÍ TU URL REAL (región+proyecto)
-  private baseUrl = 'https://us-central1-alitas-app-63d93.cloudfunctions.net';
+  private pedidosCol(): CollectionReference<DocumentData> {
+    return collection(this.firestore, 'pedidos');
+  }
 
-  crearPedido(data: any) {
-    return this.http.post(`${this.baseUrl}/crearPedido`, data);
+  crearPedido(pedido: PedidoDoc): Observable<any> {
+    const payload: PedidoDoc = {
+      ...pedido,
+      status: pedido.status ?? 'nuevo',
+      origin: 'web',
+      createdAt: serverTimestamp() as any
+    };
+    return from(addDoc(this.pedidosCol(), payload));
   }
 }

@@ -208,6 +208,7 @@ openNativeWhatsApp() {
     nombre?: string;
     metodo: 'pickup' | 'delivery';
     direccion?: string;
+    nota?: string;
   } | null = null;
 
   horaProgramada = ''; // HH:mm
@@ -248,7 +249,8 @@ openNativeWhatsApp() {
       qty: this.paquete.qty,
       nombre: this.nombreCliente || '',
       metodo: this.metodoEntrega,
-      direccion: this.metodoEntrega === 'delivery' ? (this.direccion || '') : ''
+      direccion: this.metodoEntrega === 'delivery' ? (this.direccion || '') : '',
+      nota: this.nota?.trim() || ''
     };
 
     // Ticket optimista
@@ -304,11 +306,21 @@ openNativeWhatsApp() {
     w.document.close();
   }
   
+  isSaving = false;
+
+private resetForm() {
+  this.paquete.qty = 0;
+  this.nombreCliente = '';
+  this.metodoEntrega = 'pickup';
+  this.direccion = '';
+  this.nota = '';
+}
+
+// 1) Ya NO guarda: solo muestra el ticket para confirmar
 async enviarYGuardar(ev: Event) {
   ev.preventDefault();
   if (!this.canSend) return;
 
-  // Construye el documento igual que en pedirDirecto()
   const data = {
     id: this.generarId(),
     fecha: new Date().toLocaleString('es-MX'),
@@ -320,27 +332,97 @@ async enviarYGuardar(ev: Event) {
     nombre: this.nombreCliente || '',
     metodo: this.metodoEntrega,
     direccion: this.metodoEntrega === 'delivery' ? (this.direccion || '') : '',
-    // puedes mandar status aquí si quieres otro valor
+    nota: this.nota?.trim() || ''
   };
 
+  // Nada de Firestore aquí
+  this.ticket = data;
+  this.mostrandoTicket = true;
+}
+
+// 2) Ahora SÍ guarda y después abre WhatsApp
+async confirmarYEnviarWhatsApp() {
+  if (!this.ticket || this.isSaving) return;
+  this.isSaving = true;
+
   try {
-    // Espera a que se guarde (rápido). Si prefieres “fire-and-forget”, quita el await.
-    await firstValueFrom(this.pedidoService.crearPedido(data));
+    // 1) Guardar en Firestore
+    await firstValueFrom(this.pedidoService.crearPedido(this.ticket));
+
+    // 2) Historial local (opcional)
+    const key = 'sanJua_pedidos';
+    const arr = JSON.parse(localStorage.getItem(key) || '[]');
+    arr.unshift(this.ticket);
+    localStorage.setItem(key, JSON.stringify(arr));
+
+    // 3) Descargar ticket automáticamente
+    this.downloadTicket(this.ticket);
+
+    // 4) Abrir WhatsApp
+    window.open(this.whatsappHttpLink, '_blank', 'noopener');
+
+    // 5) Cerrar modal, feedback y limpiar
+    this.mostrandoTicket = false;
+    this.showToast('Pedido confirmado, ticket descargado ✅');
+    this.resetForm();
+
   } catch (e) {
     console.error('No se pudo guardar en Firestore', e);
-    // Opcional: muestra toast y AÚN ASÍ abre WhatsApp para no perder la venta
-    this.showToast('No se guardó en la nube, pero te abrimos WhatsApp');
+    this.showToast('No se pudo guardar. Reintenta.');
   } finally {
-    // Abre WhatsApp (elige tu preferido)
-    // window.open(this.whatsAppUrl(), '_blank', 'noopener');            // web/desktop
-    window.open(this.whatsappHttpLink, '_blank', 'noopener');            // http que hace mejor handoff en móvil
-    // o: this.openNativeWhatsApp();                                     // deep link nativo
+    this.isSaving = false;
   }
-
-  // Opcional: también guarda en localStorage como historial
-  const key = 'sanJua_pedidos';
-  const arr = JSON.parse(localStorage.getItem(key) || '[]');
-  arr.unshift(data);
-  localStorage.setItem(key, JSON.stringify(arr));
 }
+
+
+// === Helpers para descargar ticket ===
+private buildTicketHtml(t: NonNullable<typeof this.ticket>): string {
+  return `
+  <!doctype html><html lang="es"><head><meta charset="utf-8">
+  <title>Ticket ${t.id}</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;padding:20px;background:#fff;color:#111}
+    .tag{display:inline-block;padding:2px 8px;border-radius:9999px;background:#7c3aed;color:#fff;font-weight:600}
+    .row{display:flex;justify-content:space-between;margin:6px 0}
+    hr{border:none;border-top:1px solid #e5e7eb;margin:12px 0}
+    .muted{color:#6b7280;font-size:12px}
+  </style></head><body>
+    <h2>Purple Wings</h2>
+    <div class="tag">Pedido confirmado</div>
+    <p><strong>Ticket:</strong> ${t.id}<br>
+       <strong>Fecha:</strong> ${t.fecha}<br>
+       <strong>Listo aprox.:</strong> ${t.listoA}</p>
+    <hr>
+    <div class="row"><span>${t.qty} × Alitas adobadas</span><span>${t.subtotal.toLocaleString('es-MX',{style:'currency',currency:'MXN'})}</span></div>
+    <div class="row"><span>Envío</span><span>${t.envio===0?'GRATIS':t.envio.toLocaleString('es-MX',{style:'currency',currency:'MXN'})}</span></div>
+    <div class="row" style="font-weight:800"><span>Total</span><span>${t.total.toLocaleString('es-MX',{style:'currency',currency:'MXN'})}</span></div>
+    <hr>
+    <p><strong>Método:</strong> ${t.metodo==='pickup'?'Recoger en tienda':'Domicilio'}</p>
+    ${t.direccion?`<p><strong>Dirección:</strong> ${t.direccion}</p>`:''}
+    ${t.nombre?`<p><strong>Cliente:</strong> ${t.nombre}</p>`:''}
+    ${t.nota?`<p><strong>Nota:</strong> ${t.nota}</p>`:''}
+    <p class="muted">Gracias por tu pedido ❤️</p>
+  </body></html>`;
+}
+
+private downloadTicket(t: NonNullable<typeof this.ticket>) {
+  try {
+    const html = this.buildTicketHtml(t);
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ticket-${t.id}.html`;   // ← archivo descargable
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1500);
+  } catch {
+    this.showToast('No se pudo descargar el ticket');
+  }
+}
+
+  
+  
 }
