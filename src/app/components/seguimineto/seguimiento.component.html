@@ -1,0 +1,121 @@
+<section class="mx-auto max-w-md p-5 text-zinc-100">
+    <!-- Marco con borde neón -->
+    <div
+        class="relative rounded-2xl p-[1.5px] bg-gradient-to-r from-purple-700 via-fuchsia-600 to-purple-800 shadow-[0_0_30px_rgba(168,85,247,0.25)] neon-border">
+        <div class="rounded-2xl bg-zinc-950/85 backdrop-blur-md p-5 ring-1 ring-purple-700/30 relative overflow-hidden">
+            <!-- ruido y scanline decorativo -->
+            <div class="pointer-events-none absolute inset-0 opacity-[0.06] mix-blend-overlay noise"></div>
+            <div class="pointer-events-none absolute inset-x-0 top-0 h-[2px] scanline"></div>
+
+            <!-- Header -->
+            <header class="flex items-start gap-3">
+                <div
+                    class="h-9 w-9 shrink-0 rounded-lg bg-gradient-to-br from-purple-600 to-fuchsia-600 flex items-center justify-center shadow-[0_0_20px_rgba(168,85,247,0.45)] animate-pulse-slow">
+                    <!-- Icono rockero -->
+                    <span class="text-xl">⚡</span>
+                </div>
+                <div class="flex-1">
+                    <h2 class="text-xl font-extrabold tracking-tight text-white">
+                        Seguimiento de tu pedido
+                    </h2>
+                    <p class="text-xs text-zinc-400">
+                        Código: <strong class="text-zinc-200">{{ trackId() }}</strong>
+                    </p>
+                </div>
+                <!-- Badge de status -->
+                <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ring-1"
+                    [ngClass]="badgeClass(data()?.status)">
+                    <span class="h-1.5 w-1.5 rounded-full" [ngClass]="dotClass(data()?.status)"></span>
+                    {{ data()?.status || '—' }}
+                </span>
+            </header>
+
+            <ng-container *ngIf="data(); else notFound">
+                <!-- Progreso -->
+                <div class="mt-4">
+                    <div class="flex justify-between text-[11px] text-zinc-400">
+                        <span>Nuevo</span>
+                        <span>Confirmado</span>
+                        <span>Preparando</span>
+                        <span>Listo</span>
+                        <span>Entregado</span>
+                    </div>
+
+                    <div class="relative mt-2 h-2 rounded-full bg-zinc-800/80 overflow-hidden">
+                        <div class="absolute inset-y-0 left-0 rounded-r-full bg-gradient-to-r from-purple-600 via-fuchsia-600 to-purple-400 shadow-[0_0_20px_rgba(168,85,247,0.45)]"
+                            [style.width.%]="progressFor(data().status)"></div>
+                        <!-- brillo que recorre -->
+                        <div class="runner"></div>
+                    </div>
+
+                    <!-- Timeline de pasos -->
+                    <ol class="mt-4 grid grid-cols-5 gap-2 text-center">
+                        <li *ngFor="let s of steps" class="group">
+                            <div class="mx-auto h-8 w-8 rounded-full ring-1 flex items-center justify-center text-sm
+                         bg-zinc-900 ring-zinc-700/50 shadow-inner"
+                                [ngClass]="{ 'step-active': isReached(s, data()?.status) }">
+                                <span *ngIf="!isReached(s, data()?.status)">•</span>
+                                <span *ngIf="isReached(s, data()?.status)">✓</span>
+                            </div>
+                            <p class="mt-1 text-[11px] text-zinc-400 capitalize">{{ s }}</p>
+                        </li>
+                    </ol>
+                </div>
+
+                <!-- Datos del pedido -->
+                <div class="mt-5 grid gap-2 text-sm">
+                    <div class="flex items-center justify-between">
+                        <span class="text-zinc-400">Folio</span>
+                        <span class="font-semibold text-zinc-200">{{ data().idFolio }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-zinc-400">Listo aprox.</span>
+                        <span class="font-semibold text-zinc-200">{{ data().listoA || '—' }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-zinc-400">Paquetes</span>
+                        <span class="font-medium">{{ data().qty }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-zinc-400">Total</span>
+                        <span class="font-extrabold text-white">{{ data().total | currency:'MXN':'symbol-narrow'
+                            }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-zinc-400">Método</span>
+                        <span class="font-medium">
+                            {{ data().metodo === 'pickup' ? 'Recoger en tienda' : 'Domicilio' }}
+                        </span>
+                    </div>
+                    <p class="text-[11px] text-zinc-500 mt-2">Se actualiza solo cada 5 s. Tú relájate, que el carbón ya
+                        va 🔥.</p>
+                </div>
+
+                <!-- Acciones -->
+                <div class="mt-5 flex flex-wrap items-center gap-2">
+                    <button class="btn-primary" (click)="verTicket()" aria-label="Ver ticket">
+                        🎟️ Ver ticket
+                    </button>
+
+                    <a class="btn-ghost" [href]="waLink(data())" target="_blank" rel="noopener">
+                        💬 WhatsApp
+                    </a>
+
+                    <button class="btn-ghost" (click)="sharePedido(data())">
+                        🔗 Compartir
+                    </button>
+                </div>
+            </ng-container>
+
+            <!-- Not Found -->
+            <ng-template #notFound>
+                <div class="mt-6 rounded-lg border border-zinc-800 bg-zinc-900/70 p-4">
+                    <p class="text-sm text-zinc-400">
+                        No encontramos ese código. Revisa que esté bien escrito.
+                    </p>
+                </div>
+            </ng-template>
+        </div>
+    </div>
+    <div *ngIf="toast().show" class="app-toast">{{ toast().text }}</div>
+</section>

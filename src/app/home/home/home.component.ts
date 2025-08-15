@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PedidoService } from '../../../service/pedido.service';
 import { firstValueFrom } from 'rxjs';
+import { serverTimestamp } from 'firebase/firestore';
 type Paquete = {
   name: string;
   price: number;
@@ -38,6 +39,7 @@ export class HomeComponent {
 
   // Form
   nombreCliente = '';
+  telefono = '';
   metodoEntrega: 'pickup' | 'delivery' = 'pickup';
   direccion = '';
   nota = '';
@@ -79,6 +81,7 @@ export class HomeComponent {
     const partes = [
       `*Nuevo pedido* - Purple Wings`,
       `• Nombre: ${this.nombreCliente?.trim() || '—'}`,
+      ...(this.telefono?.trim() ? [`• Tel: ${this.telefono.trim()}`] : []),
       `• Paquetes: ${this.paquete?.qty || 0}`,
       `• Subtotal: ${this.mxn(this.subtotal)}`,
       this.metodoEntrega === 'delivery'
@@ -92,6 +95,11 @@ export class HomeComponent {
     }
     return partes;
   }
+  get telValido() {
+    const t = this.telefono?.trim() || '';
+    return /^\d{10}$/.test(t);
+  }
+  
 
   private buildWhatsUrl(tel: string, text: string) {
     const encoded = encodeURIComponent(text.replace(/\r?\n/g, '\n').trim());
@@ -206,9 +214,11 @@ openNativeWhatsApp() {
     envio: number;
     qty: number;
     nombre?: string;
+    telefono?: string;
     metodo: 'pickup' | 'delivery';
     direccion?: string;
     nota?: string;
+    trackId?: string;    
   } | null = null;
 
   horaProgramada = ''; // HH:mm
@@ -231,7 +241,7 @@ openNativeWhatsApp() {
     const fecha = d.toISOString().slice(2, 10).replace(/-/g, ''); // yyMMdd
     const hora = d.toTimeString().slice(0, 8).replace(/:/g, '');  // HHmmss
     const rnd = Math.random().toString(16).slice(2, 4).toUpperCase();
-    return `SJ-${fecha}-${hora}-${rnd}`;
+    return `PW-${fecha}-${hora}-${rnd}`;
   }
 
   private pedidoService = inject(PedidoService);
@@ -248,6 +258,7 @@ openNativeWhatsApp() {
       envio: this.deliveryFee,
       qty: this.paquete.qty,
       nombre: this.nombreCliente || '',
+      telefono: this.telefono || '', 
       metodo: this.metodoEntrega,
       direccion: this.metodoEntrega === 'delivery' ? (this.direccion || '') : '',
       nota: this.nota?.trim() || ''
@@ -299,6 +310,7 @@ openNativeWhatsApp() {
         <p><strong>Método:</strong> ${t.metodo === 'pickup' ? 'Recoger en tienda' : 'Domicilio'}</p>
         ${t.direccion ? `<p><strong>Dirección:</strong> ${t.direccion}</p>` : ''}
         ${t.nombre ? `<p><strong>Cliente:</strong> ${t.nombre}</p>` : ''}
+${t['telefono'] ? `<p><strong>Tel:</strong> ${t['telefono']}</p>` : ''}
         <p>Gracias por tu pedido ❤️</p>
         <script>window.print();</script>
       </body></html>
@@ -311,6 +323,7 @@ openNativeWhatsApp() {
 private resetForm() {
   this.paquete.qty = 0;
   this.nombreCliente = '';
+  this.telefono = '';
   this.metodoEntrega = 'pickup';
   this.direccion = '';
   this.nota = '';
@@ -340,39 +353,58 @@ async enviarYGuardar(ev: Event) {
   this.mostrandoTicket = true;
 }
 
+
+
 // 2) Ahora SÍ guarda y después abre WhatsApp
+// Generador de código corto no adivinable
+private genTrackId(len = 6): string {
+  const abc = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // sin confusos
+  const a = crypto.getRandomValues(new Uint8Array(len));
+  return Array.from(a, x => abc[x % abc.length]).join('');
+}
+
+// En confirmar: guarda pedido, Crea seguimiento y abre WhatsApp
 async confirmarYEnviarWhatsApp() {
   if (!this.ticket || this.isSaving) return;
   this.isSaving = true;
-
   try {
-    // 1) Guardar en Firestore
-    await firstValueFrom(this.pedidoService.crearPedido(this.ticket));
+    // 0) agregar trackId al ticket
+    const trackId = this.genTrackId();
+    this.ticket.trackId = trackId;
 
-    // 2) Historial local (opcional)
-    const key = 'sanJua_pedidos';
-    const arr = JSON.parse(localStorage.getItem(key) || '[]');
-    arr.unshift(this.ticket);
-    localStorage.setItem(key, JSON.stringify(arr));
+    // 1) Guardar pedido y obtener id del doc
+    const ref = await firstValueFrom(this.pedidoService.crearPedido(this.ticket));
 
-    // 3) Descargar ticket automáticamente
+    // 2) Crear/actualizar doc público
+    await firstValueFrom(
+      await this.pedidoService.upsertSeguimiento(trackId, {
+        pedidoDocId: ref.id,
+        idFolio: this.ticket.id,
+        status: 'nuevo',
+        qty: this.ticket.qty,
+        total: this.ticket.total,
+        metodo: this.ticket.metodo,
+        listoA: this.ticket.listoA,
+        createdAt: (serverTimestamp() as any)
+      })
+    );
+
+    // 3) Descargar ticket y abrir Whats
     this.downloadTicket(this.ticket);
-
-    // 4) Abrir WhatsApp
     window.open(this.whatsappHttpLink, '_blank', 'noopener');
 
-    // 5) Cerrar modal, feedback y limpiar
-    this.mostrandoTicket = false;
-    this.showToast('Pedido confirmado, ticket descargado ✅');
+    // 4) Feedback y reset
+    
+    this.showToast(`Pedido confirmado. Seguimiento: ${trackId} ✅`);
     this.resetForm();
-
   } catch (e) {
-    console.error('No se pudo guardar en Firestore', e);
+    console.error('No se pudo guardar en Firestore / seguimiento', e);
     this.showToast('No se pudo guardar. Reintenta.');
   } finally {
     this.isSaving = false;
   }
 }
+
 
 
 // === Helpers para descargar ticket ===
@@ -401,6 +433,7 @@ private buildTicketHtml(t: NonNullable<typeof this.ticket>): string {
     <p><strong>Método:</strong> ${t.metodo==='pickup'?'Recoger en tienda':'Domicilio'}</p>
     ${t.direccion?`<p><strong>Dirección:</strong> ${t.direccion}</p>`:''}
     ${t.nombre?`<p><strong>Cliente:</strong> ${t.nombre}</p>`:''}
+    ${t.telefono ? `<p><strong>Tel:</strong> ${t.telefono}</p>` : ''}
     ${t.nota?`<p><strong>Nota:</strong> ${t.nota}</p>`:''}
     <p class="muted">Gracias por tu pedido ❤️</p>
   </body></html>`;

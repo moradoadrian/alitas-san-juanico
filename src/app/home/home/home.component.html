@@ -195,6 +195,14 @@
                             class="w-full p-3 bg-zinc-950 text-zinc-100 placeholder-zinc-500 border border-zinc-700 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
                             placeholder="Ej. Adrián" />
                     </div>
+                    <div>
+                        <label class="block text-sm text-zinc-300 mb-1">Teléfono (opcional)</label>
+                        <input [(ngModel)]="telefono" [ngModelOptions]="{standalone:true}" inputmode="tel"
+                            maxlength="10"
+                            class="w-full p-3 bg-zinc-950 text-zinc-100 placeholder-zinc-500 border border-zinc-700 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
+                            placeholder="Ej. 4611234567" />
+                        <p *ngIf="telefono && !telValido" class="text-xs text-red-400 mt-1">Debe tener 10 dígitos.</p>
+                    </div>
 
                     <!-- Si activas delivery en el TS, aparecerá dirección y envío -->
                     <div *ngIf="metodoEntrega==='delivery'" class="sm:col-span-2 grid sm:grid-cols-2 gap-4">
@@ -332,10 +340,10 @@
                 <span>{{ ticket.qty }} × {{ paquete.name }}</span>
                 <span>{{ ticket.subtotal | currency:'MXN':'symbol-narrow' }}</span>
             </div>
-            <div class="flex justify-between">
+            <!-- <div class="flex justify-between">
                 <span>Envío</span>
                 <span>{{ ticket.envio === 0 ? 'GRATIS' : (ticket.envio | currency:'MXN':'symbol-narrow') }}</span>
-            </div>
+            </div> -->
             <hr class="border-zinc-800 my-2">
             <div class="flex justify-between text-base font-extrabold text-white">
                 <span>Total</span>
@@ -352,6 +360,7 @@
             <div *ngIf="ticket.nota"><span class="font-semibold text-zinc-300">Nota:</span> {{ ticket.nota }}</div>
         </div>
 
+
         <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2">
             <button
                 class="col-span-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold px-4 py-2 rounded-xl disabled:opacity-60 disabled:pointer-events-none"
@@ -366,6 +375,16 @@
                 (click)="imprimirTicket()">
                 Imprimir
             </button>
+        </div>
+        <div *ngIf="ticket?.trackId"
+            class="mt-4 p-3 rounded-xl border border-purple-700/40 bg-zinc-900/50 text-xs text-zinc-400">
+            <span class="font-semibold text-zinc-300">Seguimiento:</span>
+            <code class="px-2 py-1 rounded bg-zinc-800 border border-zinc-700">{{ ticket.trackId }}</code>
+            <div class="mt-1 break-all">
+                <a [href]="'/seguimiento/' + ticket.trackId" class="underline text-purple-400 hover:text-purple-300">
+                    /seguimiento/{{ ticket.trackId }}
+                </a>
+            </div>
         </div>
 
         <div class="mt-2 text-[11px] text-zinc-500">

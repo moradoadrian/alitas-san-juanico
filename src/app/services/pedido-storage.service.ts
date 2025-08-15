@@ -6,6 +6,7 @@ export type PedidoJson = {
   id: string;
   fecha: string;
   listoA?: string;
+  telefono?: string;
   total: number;
   subtotal: number;
   envio: number;
